@@ -1,0 +1,6 @@
+C:\Users\hibak\source\repos\backend_ecole\backend_ecole\obj\Debug\backend_ecole.njsproj.AssemblyReference.cache
+C:\Users\hibak\source\repos\backend_ecole\backend_ecole\obj\Debug\backend_ecole.njsproj.CoreCompileInputs.cache
+C:\Users\hibak\source\repos\backend_ecole\backend_ecole\bin\Microsoft.NodejsTools.WebRole.dll
+C:\Users\hibak\Desktop\backend_ecole\backend_ecole\obj\Debug\backend_ecole.njsproj.AssemblyReference.cache
+C:\Users\hibak\Desktop\backend_ecole\backend_ecole\obj\Debug\backend_ecole.njsproj.CoreCompileInputs.cache
+C:\Users\hibak\Desktop\backend_ecole\backend_ecole\bin\Microsoft.NodejsTools.WebRole.dll
