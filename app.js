@@ -12,6 +12,7 @@ const connectToMongoDB = require('./config/db')
 
 const routes = require('./routes/index');
 const users = require('./routes/userRoute');
+const cours = require('./routes/courRoute');
 
 const app = express();
 
@@ -39,6 +40,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);
 app.use('/users', users);
+app.use('/cours', cours);
 
 // catch 404 and forward to error handler
 // app.use(function (req, res, next) {

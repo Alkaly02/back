@@ -1,17 +1,22 @@
 const mongoose = require('mongoose');
 
+const salleOptions = ['Salle 1', 'Salle 2', 'Salle 3', 'Salle 4', 'Salle 5'];
+
 const CourSchema = new mongoose.Schema({
-    courFile: {
-        type: String
+    date: {
+        type: Date,
+        required: true
     },
-    courName: {
-        type: String
+    heure: {
+        type: Number,
+        required: true,
     },
-    courFiliere: {
-        type: String
+    salle: {
+        type: String,
+        required: true,
+        enum: salleOptions
     }
-}, {
-    collection: 'cours'
 });
 
-module.exports = mongoose.model('Cours', CourSchema);
+const CoursModel = mongoose.model('Cour', CourSchema);
+module.exports = { CoursModel } 
