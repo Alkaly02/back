@@ -45,6 +45,7 @@ const EtudiantSchema = new Schema({
         required: true
     }
 });
-
-module.exports.Etudiant = mongoose.model("etudiants", EtudiantSchema);
-module.exports.User = mongoose.model("users", UserSchema);
+const UserModel = mongoose.model("User", UserSchema);
+const Etudiant = mongoose.model("Etudiant", EtudiantSchema)
+// const UserModel = mongoose.model('User', userSchema)
+module.exports = { UserModel, Etudiant }

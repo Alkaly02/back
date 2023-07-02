@@ -1,76 +1,84 @@
 const express = require('express');
 const cors = require('cors');
-const bcryptjs = require('bcryptjs');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const fileUpload = require('express-fileupload');
-const User = require('../models/userModel');
+const { UserModel } = require('../models/userModel');
 
-const users = express.Router();
-users.use(cors());
+const router = express.Router()
+// users.use(cors());
 process.env.SECRET_KEY = 'secret';
 
+const generateToken = (userId) => {
+    return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '30d' })
+}
+
+
 // API: Inscription (POST)
-users.post('/register', (req, res) => {
+router.post('/register', async (req, res) => {
     const today = new Date();
-    const { fullName, email, password, valid } = req.body;
+    const { fullName, email, password } = req.body;
     const userData = {
         fullName: fullName,
         email: email,
         password: password,
-        valid: valid,
         created_at: today
     };
 
-    User.findOne({ email: email })
-        .then(user => {
-            if (!user) {
-                bcryptjs.hash(password, 10, (err, hash) => {
-                    userData.password = hash;
-                    User.create(userData)
-                        .then(user => {
-                            res.json({ status: user.email + ' registered!' });
-                        })
-                        .catch(err => {
-                            res.send('Error: ' + err);
-                        });
-                });
-            } else {
-                res.json({ error: 'User already exists' });
-            }
+    const findUser = await UserModel.find({ email })
+    if (findUser.length) {
+        res.status(402).send({ error: "L'utilisateur exist dÃ©ja" })
+        return
+    }
+
+    // Hash password
+    const salt = await bcrypt.genSalt(10)
+    const hashedPassword = await bcrypt.hash(userData.password, salt)
+
+    try {
+        const createdUser = await UserModel.create({ ...userData, password: hashedPassword })
+        res.status(200).json({
+            success: true,
+            message: "Utilisateur crÃ©Ã©",
+            // token: generateToken(createdUser._id)
         })
-        .catch(err => {
-            res.send('Error: ' + err);
-        });
+    }
+    catch (err) {
+        res.status(400).json(err)
+    }
 });
 
 // API: Connexion (POST)
-users.post('/login', (req, res) => {
-    const { email, password } = req.body;
+router.post('/login', async (req, res) => {
 
-    User.findOne({ email: email, valid: { $exists: true } })
-        .then(user => {
-            if (user && user.valid === 1) {
-                if (bcryptjs.compareSync(password, user.password)) {
-                    const payload = {
-                        id: user.id,
-                        fullName: user.fullName,
-                        email: user.email
-                    };
-                    let token = jwt.sign(payload, process.env.SECRET_KEY, {
-                        expiresIn: 1440
-                    });
-                    res.send(token);
-                } else {
-                    res.json({ error: "User doesn't exist" });
-                }
-            } else {
-                res.json({ error: "User does not exist" });
+    const { email, password } = req.body
+    const user = await UserModel.find({ email })
+
+    if (user.length) {
+        // check if the given password matches with user password in database
+        bcrypt.compare(password, user[0].password, function (err, result) {
+            if (!result) {
+                res.status(400).json({ error: "Utilisateur introuvable" })
+                return
             }
+            delete user[0].password
+            res.status(200).json({
+                user: {
+                    _id: user[0]._id,
+                    fullName: user[0].fullName,
+                    email: user[0].email
+                },
+                token: generateToken(user[0]._id)
+            })
         });
+    }
+    else {
+        res.status(400).json({ error: "L'utilisateur n'existe pas" })
+    }
 });
 
 // API: Profil (GET)
-users.get('/profile', (req, res) => {
+router.get('/profile', (req, res) => {
     const token = req.headers['authorization'];
     jwt.verify(token, process.env.SECRET_KEY, (err, decoded) => {
         if (err) {
@@ -91,8 +99,8 @@ users.get('/profile', (req, res) => {
     });
 });
 
-// API: Mise à jour utilisateur (PUT)
-users.put('/:userId', (req, res) => {
+// API: Mise ï¿½ jour utilisateur (PUT)
+router.put('/:userId', (req, res) => {
     const { userId } = req.params;
 
     User.findOneAndUpdate(
@@ -109,19 +117,24 @@ users.put('/:userId', (req, res) => {
     );
 });
 
-// API: Récupérer tous les utilisateurs (GET)
-users.get('/Allusers', (req, res) => {
-    User.find({ valid: { $exists: false } }, (err, users) => {
-        if (err) {
-            res.send(err);
-        } else {
-            res.json(users);
-        }
-    });
+// API: Rï¿½cupï¿½rer tous les utilisateurs (GET)
+router.get('/Allusers', async (req, res) => {
+    console.log('All users');
+    // User.find({ valid: { $exists: false } }, (err, users) => {
+    //     if (err) {
+    //         console.log('error from all users :', err);
+    //         res.send(err);
+    //     } else {
+    //         console.log('response from all users :', users);
+    //         res.json(users);
+    //     }
+    // });
+    const users = await User.find({})
+    res.json(users);
 });
 
 // API: Valider un utilisateur (PUT)
-users.put('/valid/:userId', (req, res) => {
+router.put('/valid/:userId', (req, res) => {
     const { userId } = req.params;
 
     User.findOneAndUpdate(
@@ -138,4 +151,4 @@ users.put('/valid/:userId', (req, res) => {
     );
 });
 
-module.exports = users;
+module.exports = router;
