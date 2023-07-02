@@ -91,6 +91,32 @@ router.delete('/delete/:id', (req, res,) => {
         });
 });
 
+/**
+ * @mettre_a_jour
+ */
+router.put('/update/:id', async (req, res) => {
+    try {
+        const courdId = req.params.id;
+
+        const updatedCoursData = req.body;
+
+        const updatedCours = await CoursModel.findByIdAndUpdate(
+            courdId,
+            updatedCoursData,
+            { new: true }
+        );
+
+        if (updatedCours) {
+            res.status(200).json(updatedCours);
+        } else {
+            res.sendStatus(404);
+        }
+    } catch (error) {
+        console.error('Error occurred while updating reservation:', error);
+        res.sendStatus(500);
+    }
+});
+
 // router.post('/add', upload.single('courFile'), (req, res, next) => {
 //     const url = req.protocol + '://' + req.get('host');
 //     console.log({ cours: req.body });
